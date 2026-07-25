@@ -72,7 +72,7 @@ Model Evaluation
 smartwatch-rating-prediction/
 
 │
-├── data/
+├── Dataset/
 │
 ├── notebooks/
 │   ├── 01_Data_Cleaning.ipynb
@@ -86,7 +86,7 @@ smartwatch-rating-prediction/
 │
 ├── src/
 │
-├── requirements.txt
+├── Requirements.txt
 │
 └── README.md
 ```
