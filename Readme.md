@@ -73,6 +73,14 @@ smartwatch-rating-prediction/
 
 │
 ├── Dataset/
+│   ├── smartwatches.csv
+│   ├── cleaned_dataset.csv
+│   └── Processed/
+│       ├── X_train.csv
+│       ├── X_test.csv
+│       ├── y_train.csv
+│       ├── y_test.csv
+│       └── comparison.csv
 │
 ├── notebooks/
 │   ├── 01_Data_Cleaning.ipynb
