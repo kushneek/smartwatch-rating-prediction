@@ -58,7 +58,7 @@ One-Hot Encoding
 Feature Scaling
       │
       ▼
-Linear Regression Model
+Model Training
       │
       ▼
 Model Evaluation
@@ -90,7 +90,9 @@ smartwatch-rating-prediction/
 │   └── 05_Model_Evaluation.ipynb
 │
 ├── models/
-│   └── linear_regression.joblib
+│   └── Linear_Regression.joblib
+│   └── Decision_Tree_Model.joblib
+│   └── Ridge_Model.joblib
 │
 ├── src/
 │
@@ -130,6 +132,8 @@ The following preprocessing techniques were performed:
 ## Model Implemented
 
 - Linear Regression
+- Decision Tree
+- Ridge Model
 
 ---
 
