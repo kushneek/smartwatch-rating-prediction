@@ -163,9 +163,7 @@ The following preprocessing techniques were performed:
 
 The following regression algorithms will be implemented and compared:
 
-- Decision Tree Regression
 - Random Forest Regression
-- Ridge Regression
 - Lasso Regression
 - K-Nearest Neighbors (KNN) Regression
 - Gradient Boosting Regression
