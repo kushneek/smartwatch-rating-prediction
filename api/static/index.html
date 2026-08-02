@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Smartwatch rating predictor</title>
+<style>
+  :root {
+    --bg: #0b0d10;
+    --panel: #14171b;
+    --panel-2: #1b1f24;
+    --border: #262b31;
+    --text: #e7e9ea;
+    --text-muted: #8a9099;
+    --accent: #35d0a0;
+    --accent-dim: #1e6e56;
+    --danger: #e2564f;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 48px 20px;
+  }
+  .wrap { width: 100%; max-width: 620px; }
+  header { margin-bottom: 28px; }
+  h1 { font-size: 20px; font-weight: 600; margin: 0 0 4px; }
+  .sub { color: var(--text-muted); font-size: 14px; margin: 0; }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field.full { grid-column: 1 / -1; }
+  label { font-size: 12px; color: var(--text-muted); }
+  input, select {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 9px 10px;
+    font-size: 14px;
+    outline: none;
+  }
+  input:focus, select:focus { border-color: var(--accent-dim); }
+
+  .toggle-row { display: flex; gap: 8px; }
+  .toggle-btn {
+    flex: 1;
+    padding: 9px 0;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--panel-2);
+    color: var(--text-muted);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .toggle-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(53, 208, 160, 0.08);
+  }
+
+  button.submit {
+    width: 100%;
+    margin-top: 22px;
+    padding: 12px 0;
+    border-radius: 8px;
+    border: none;
+    background: var(--accent);
+    color: #062a20;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button.submit:disabled { opacity: 0.5; cursor: default; }
+  button.submit:hover:not(:disabled) { background: #2fc094; }
+
+  .result {
+    margin-top: 20px;
+    padding: 20px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--panel-2);
+    display: none;
+  }
+  .result.show { display: block; }
+  .result.error { border-color: var(--danger); }
+  .rating-display { display: flex; align-items: baseline; gap: 10px; }
+  .rating-number { font-size: 40px; font-weight: 700; color: var(--accent); }
+  .rating-scale { font-size: 14px; color: var(--text-muted); }
+  .rating-bar-track {
+    margin-top: 12px;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border);
+    overflow: hidden;
+  }
+  .rating-bar-fill { height: 100%; background: var(--accent); border-radius: 3px; }
+  .meta { margin-top: 12px; font-size: 12px; color: var(--text-muted); }
+  .error-text { color: var(--danger); font-size: 14px; }
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Smartwatch rating predictor</h1>
+    <p class="sub">Enter specs, get an estimated customer rating out of 5.</p>
+  </header>
+
+  <div class="panel">
+    <form id="predict-form">
+      <div class="grid">
+        <div class="field">
+          <label for="brand">Brand</label>
+          <input id="brand" required placeholder="e.g. noise" />
+        </div>
+        <div class="field">
+          <label for="current-price">Current price</label>
+          <input id="current-price" type="number" required min="1" placeholder="2999" />
+        </div>
+
+        <div class="field">
+          <label for="original-price">Original price</label>
+          <input id="original-price" type="number" required min="1" placeholder="4999" />
+        </div>
+        <div class="field">
+          <label for="dial-shape">Dial shape</label>
+          <select id="dial-shape" required>
+            <option value="Circle">Circle</option>
+            <option value="Rectangle">Rectangle</option>
+            <option value="Square">Square</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="strap-color">Strap color</label>
+          <input id="strap-color" required placeholder="e.g. Black" />
+        </div>
+
+        <div class="field">
+          <label for="strap-material">Strap material</label>
+          <select id="strap-material" required>
+            <option value="Silicon">Silicon</option>
+            <option value="Rubber">Rubber</option>
+            <option value="Stainless Steel">Stainless steel</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="weight">Weight</label>
+          <select id="weight">
+            <option value="">Unknown</option>
+            <option value="<= 20 g">Up to 20 g</option>
+            <option value="20 - 35 g">20-35 g</option>
+            <option value="35 - 50 g">35-50 g</option>
+            <option value="50 - 75 g">50-75 g</option>
+            <option value="75g +">75 g and up</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="battery-life">Battery life (days)</label>
+          <input id="battery-life" type="number" required min="0" placeholder="7" />
+        </div>
+        <div class="field">
+          <label for="display-size">Display size (inches)</label>
+          <input id="display-size" type="number" step="0.1" required min="0.1" max="3" placeholder="1.8" />
+        </div>
+
+        <div class="field">
+          <label>Touchscreen</label>
+          <div class="toggle-row" id="touchscreen-toggle">
+            <button type="button" class="toggle-btn active" data-value="Yes">Yes</button>
+            <button type="button" class="toggle-btn" data-value="No">No</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Bluetooth</label>
+          <div class="toggle-row" id="bluetooth-toggle">
+            <button type="button" class="toggle-btn active" data-value="Yes">Yes</button>
+            <button type="button" class="toggle-btn" data-value="No">No</button>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="submit" id="submit-btn">Predict rating</button>
+    </form>
+
+    <div class="result" id="result">
+      <div id="result-content"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Backend address. Change this if you run the API on a different host/port --
+  // this is a developer setting, not something a customer should see or touch.
+  const API_URL = "/predict";
+
+  function setupToggle(id) {
+    const group = document.getElementById(id);
+    group.addEventListener('click', (e) => {
+      const btn = e.target.closest('.toggle-btn');
+      if (!btn) return;
+      group.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  }
+  setupToggle('touchscreen-toggle');
+  setupToggle('bluetooth-toggle');
+
+  function getToggleValue(id) {
+    return document.querySelector(`#${id} .toggle-btn.active`).dataset.value;
+  }
+
+  const form = document.getElementById('predict-form');
+  const resultBox = document.getElementById('result');
+  const resultContent = document.getElementById('result-content');
+  const submitBtn = document.getElementById('submit-btn');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const payload = {
+      "Brand": document.getElementById('brand').value.trim(),
+      "Current Price": Number(document.getElementById('current-price').value),
+      "Original Price": Number(document.getElementById('original-price').value),
+      "Dial Shape": document.getElementById('dial-shape').value,
+      "Strap Color": document.getElementById('strap-color').value.trim(),
+      "Strap Material": document.getElementById('strap-material').value,
+      "Touchscreen": getToggleValue('touchscreen-toggle'),
+      "Battery Life (Days)": Number(document.getElementById('battery-life').value),
+      "Bluetooth": getToggleValue('bluetooth-toggle'),
+      "Display Size": Number(document.getElementById('display-size').value),
+    };
+
+    const weightValue = document.getElementById('weight').value;
+    if (weightValue) payload["Weight"] = weightValue;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Predicting…';
+    resultBox.classList.remove('show', 'error');
+
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || 'Prediction failed.');
+      }
+
+      const rating = data.predicted_rating;
+      const pct = Math.max(0, Math.min(100, (rating / 5) * 100));
+
+      resultContent.innerHTML = `
+        <div class="rating-display">
+          <span class="rating-number">${rating.toFixed(2)}</span>
+          <span class="rating-scale">/ 5.0</span>
+        </div>
+        <div class="rating-bar-track">
+          <div class="rating-bar-fill" style="width: ${pct}%"></div>
+        </div>
+        <div class="meta">
+          Model: ${data.model_name} · cross-validated R² ${(data.model_cv_r2 * 100).toFixed(0)}%
+          ${data.warnings && data.warnings.length ? `<br>${data.warnings.join(' ')}` : ''}
+        </div>
+      `;
+      resultBox.classList.add('show');
+    } catch (err) {
+      resultContent.innerHTML = `<div class="error-text">Couldn't get a prediction: ${err.message}</div>`;
+      resultBox.classList.add('show', 'error');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Predict rating';
+    }
+  });
+</script>
+</body>
+</html>

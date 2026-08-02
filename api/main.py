@@ -1,11 +1,4 @@
-"""
-Smartwatch rating prediction API.
 
-Run locally with:
-    uvicorn api.main:app --reload --port 8000
-
-Then open http://localhost:8000/docs for interactive testing.
-"""
 
 import sys
 from pathlib import Path
@@ -15,6 +8,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 from smartwatch_ml.predict import predict as run_prediction, get_metadata
 from .schemas import SmartwatchInput, PredictionResponse, ModelInfoResponse
@@ -45,6 +40,13 @@ def health():
 def model_info():
     metadata = get_metadata()
     return ModelInfoResponse(**metadata)
+
+@app.get("/")
+def serve_frontend():
+    return FileResponse(Path(__file__).resolve().parent / "static" / "index.html")
+
+
+app.mount("/static", StaticFiles(directory=Path(__file__).resolve().parent / "static"), name="static")
 
 
 @app.post("/predict", response_model=PredictionResponse)
