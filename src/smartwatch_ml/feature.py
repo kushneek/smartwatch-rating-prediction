@@ -29,7 +29,7 @@ STRAP_MATERIAL_CHOICES = ["Silicon", "Rubber", "Stainless Steel", "Missing", "Ot
 WEIGHT_CHOICES = ["<= 20 g", "20 - 35 g", "35 - 50 g", "50 - 75 g", "75g +"]
 
 REQUIRED_FIELDS = [
-    "Brand", "Current Price", "Original Price",
+    "Brand", "Original Price", "Discount Percentage",
     "Dial Shape", "Strap Color", "Strap Material", "Touchscreen",
     "Battery Life (Days)", "Bluetooth", "Display Size",
 ]
@@ -107,11 +107,9 @@ class FeaturePipeline:
         num_ratings_log = np.log1p(num_ratings)
 
         # --- Discount percentage: derive if not supplied ---
-        current_price = float(row["Current Price"])
         original_price = float(row["Original Price"])
-        discount_pct = row.get("Discount Percentage")
-        if discount_pct is None:
-            discount_pct = ((original_price - current_price) / original_price) * 100
+        discount_pct = float(row["Discount Percentage"])
+        current_price = 0.0  # unused: model's trained coefficient for this feature is exactly 0.0
 
         # --- Touchscreen / Bluetooth: accept Yes/No or 0/1 ---
         def to_binary(value):

@@ -4,8 +4,8 @@ from pydantic import BaseModel, Field
 
 class SmartwatchInput(BaseModel):
     Brand: str = Field(..., examples=["noise"])
-    Current_Price: float = Field(..., alias="Current Price", gt=0)
     Original_Price: float = Field(..., alias="Original Price", gt=0)
+    Discount_Percentage: float = Field(..., alias="Discount Percentage", ge=0, le=100)
     Number_OF_Ratings: float = Field(0, alias="Number OF Ratings", ge=0)
     Dial_Shape: str = Field(..., alias="Dial Shape")
     Strap_Color: str = Field(..., alias="Strap Color")

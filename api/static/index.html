@@ -131,8 +131,8 @@
           <input id="brand" required placeholder="e.g. noise" />
         </div>
         <div class="field">
-          <label for="current-price">Current price</label>
-          <input id="current-price" type="number" required min="1" placeholder="2999" />
+          <label for="discount-pct">Discount %</label>
+          <input id="discount-pct" type="number" required min="0" max="100" placeholder="30" />
         </div>
 
         <div class="field">
@@ -239,8 +239,8 @@
 
     const payload = {
       "Brand": document.getElementById('brand').value.trim(),
-      "Current Price": Number(document.getElementById('current-price').value),
       "Original Price": Number(document.getElementById('original-price').value),
+      "Discount Percentage": Number(document.getElementById('discount-pct').value),
       "Dial Shape": document.getElementById('dial-shape').value,
       "Strap Color": document.getElementById('strap-color').value.trim(),
       "Strap Material": document.getElementById('strap-material').value,
@@ -282,8 +282,7 @@
           <div class="rating-bar-fill" style="width: ${pct}%"></div>
         </div>
         <div class="meta">
-          Model: ${data.model_name} · cross-validated R² ${(data.model_cv_r2 * 100).toFixed(0)}%
-          ${data.warnings && data.warnings.length ? `<br>${data.warnings.join(' ')}` : ''}
+          ${data.warnings && data.warnings.length ? data.warnings.join(' ') : ''}
         </div>
       `;
       resultBox.classList.add('show');

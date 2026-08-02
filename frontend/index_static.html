@@ -285,7 +285,7 @@
   function predict(raw) {
     const currentPrice = raw.currentPrice;
     const originalPrice = raw.originalPrice;
-    const discountPct = ((originalPrice - currentPrice) / originalPrice) * 100;
+    const discountPct = raw.discountPct;
     const numRatingsLog = 0; // brand-new listing assumed, log1p(0) = 0
 
     const weightValue = raw.weight || MODEL.weight_mode;
@@ -296,7 +296,7 @@
     const strapColorFreq = lookupFreq(MODEL.strap_color_freq_map, raw.strapColor, MODEL.default_strap_color_freq);
 
     const features = {
-      "Current Price": currentPrice,
+      "Current Price": 0,
       "Original Price": originalPrice,
       "Discount Percentage": discountPct,
       "Number OF Ratings": numRatingsLog,
