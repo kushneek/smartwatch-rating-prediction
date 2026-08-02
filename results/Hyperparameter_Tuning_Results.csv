@@ -1,0 +1,8 @@
+Model,Best Parameters,Best CV R2,Train R2,Test R2,Train-Test Gap
+Decision Tree,"{'max_depth': 4, 'min_samples_leaf': 4, 'min_samples_split': 20}",0.11404846826094994,0.3964007857830547,0.4351536529228246,-0.038752867139769887
+Lasso,{'alpha': 0.01},0.17432867385533704,0.2659982622391954,0.3574362863757662,-0.09143802413657076
+Random Forest,"{'max_depth': 8, 'max_features': 'sqrt', 'min_samples_leaf': 4, 'n_estimators': 300}",0.16301303854059274,0.4752915369450328,0.3426513625892591,0.1326401743557737
+Ridge,{'alpha': 100},0.15989706157357814,0.25313345726502456,0.340583069748449,-0.08744961248342442
+Gradient Boosting,"{'learning_rate': 0.03, 'max_depth': 2, 'min_samples_leaf': 4, 'n_estimators': 150, 'subsample': 0.8}",0.12876523734777925,0.5072228922827978,0.2846129214838836,0.2226099707989142
+KNN,"{'metric': 'euclidean', 'n_neighbors': 7, 'weights': 'uniform'}",0.06284760426094946,0.28869625790817377,0.26389667741483247,0.0247995804933413
+XGBoost,"{'colsample_bytree': 0.8, 'learning_rate': 0.03, 'max_depth': 3, 'n_estimators': 150, 'reg_alpha': 0, 'reg_lambda': 1, 'subsample': 0.8}",0.2325716906870135,0.704586638833895,0.02728824850180045,0.6772983903320946

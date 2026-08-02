@@ -1,0 +1,16 @@
+{
+  "model_name": "Lasso",
+  "trained_at": "2026-08-02T16:35:02.045156",
+  "needs_scaling": true,
+  "n_train_rows": 277,
+  "n_test_rows": 70,
+  "n_features": 22,
+  "cv_r2_mean": 0.17432867385533704,
+  "cv_r2_std": 0.1020878657653364,
+  "test_r2": 0.3574362863757662,
+  "test_adjusted_r2": 0.056661782126124716,
+  "test_mae": 0.2283781143178226,
+  "test_rmse": 0.3581646888370615,
+  "cv_gap": 0.09166958838385841,
+  "selection_rule": "CV_Gap <= 0.2 and CV R2 >= 0.15, then highest CV R2"
+}

@@ -3,3 +3,17 @@ __pycache__/
 .vscode/
 .env
 *.pyc
+
+# data
+Dataset/raw/
+Dataset/Processed/
+Dataset/split/
+
+# models — reproducible from notebooks, don't bloat git history
+experiments/**/*.joblib
+artifacts/*.joblib
+
+# keep these — small, human-readable, worth versioning
+!artifacts/metadata.json
+!results/*.csv
+!experiments/**/*.csv
