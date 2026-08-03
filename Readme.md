@@ -1,202 +1,119 @@
-# Smartwatch Rating Prediction 
-# Machine Learning Regression Project
+# Smartwatch Rating Predictor
 
-## Project Overview
+Predicts a smartwatch's likely customer rating (1–5) from its specs — price discount, battery life, display size, materials, and so on — trained on a dataset of ~450 real smartwatch listings.
 
-This project aims to predict smartwatch customer ratings using Machine Learning based on various product specifications such as brand, price, battery life, display size, strap material, touchscreen support, Bluetooth availability, and other product attributes.
+**Live demo:** [smartwatch-rating-prediction.onrender.com](https://smartwatch-rating-prediction.onrender.com)
 
-The primary objective of this project is to understand and implement the complete end-to-end Machine Learning workflow, including data cleaning, exploratory data analysis, feature engineering, preprocessing, model training, and model evaluation.
+## What's actually in this repo
 
-Currently, the project implements **Linear Regression** as the baseline regression model. Additional regression algorithms will be implemented and compared in future updates.
+This project went through many rounds of fixing real bugs — data leakage, overfitting, hardcoded paths, an unstable evaluation metric — before landing on the current pipeline. The numbers below are the honest result, not the best-looking one from an earlier, flawed run.
 
----
+- **Model:** Lasso Regression
+- **Cross-validated R²:** 0.174 (mean over 5 folds, std 0.102)
+- **Test R²:** 0.357 · **Adjusted R²:** 0.057 · **MAE:** 0.228 · **RMSE:** 0.358
+- **Features:** 22, after cutting from an original 53 to fix a severe feature-to-sample-ratio problem
+- **Training rows:** 277 · **Test rows:** 70 (from 347 rows remaining after removing corrupted/placeholder data)
 
-## Dataset
+### Read the R² honestly
 
-**Source:** Kaggle
+0.174 means the model explains roughly 17% of the variance in customer ratings. That's a real, modest, non-overfit signal — not a strong one. Every model tried here (Ridge, Lasso, KNN, Decision Tree, Random Forest, Gradient Boosting, XGBoost) topped out in a similar 0.15–0.28 range on cross-validation. That ceiling is most likely the data itself: customer ratings are subjective, and a spec sheet only weakly determines them. Lasso was chosen over higher-scoring but far more overfit alternatives (see `notebooks/06_final_evaluation.ipynb` for the selection logic).
 
-The dataset contains smartwatch product information including:
-
-- Brand
-- Current Price
-- Original Price
-- Discount Percentage
-- Number of Ratings
-- Dial Shape
-- Strap Color
-- Strap Material
-- Touchscreen
-- Battery Life
-- Bluetooth
-- Display Size
-- Weight
-- Customer Rating (Target Variable)
-
----
-
-## Project Workflow
+## Project structure
 
 ```
-Raw Dataset
-      │
-      ▼
-Data Cleaning
-      │
-      ▼
-Exploratory Data Analysis (EDA)
-      │
-      ▼
-Feature Engineering
-      │
-      ▼
-Train-Test Split
-      │
-      ▼
-One-Hot Encoding
-      │
-      ▼
-Feature Scaling
-      │
-      ▼
-Model Training
-      │
-      ▼
-Model Evaluation
-```
-
----
-
-## Project Structure
-
-```
-smartwatch-rating-prediction/
-
-│
+.
 ├── Dataset/
-│   ├── smartwatches.csv
-│   ├── cleaned_dataset.csv
-│   └── Processed/
-│       ├── X_train.csv
-│       ├── X_test.csv
-│       ├── y_train.csv
-│       ├── y_test.csv
-│       └── comparison.csv
-│
+│   ├── raw/smartwatches.csv          # original data, not committed to git
+│   ├── Processed/cleaned_dataset.csv # after 01_data_cleaning
+│   └── split/                        # train/test splits, from 03_preprocessing
 ├── notebooks/
-│   ├── 01_Data_Cleaning.ipynb
-│   ├── 02_EDA.ipynb
-│   ├── 03_Preprocessing_Feature_Engineering.ipynb
-│   ├── 04_Model_Training.ipynb
-│   └── 05_Model_Evaluation.ipynb
-│
-├── models/
-│   └── Linear_Regression.joblib
-│   └── Decision_Tree_Model.joblib
-│   └── Ridge_Model.joblib
-│
-├── src/
-│
+│   ├── 01_data_cleaning.ipynb
+│   ├── 02_eda.ipynb
+│   ├── 03_preprocessing.ipynb
+│   ├── 04_model_training.ipynb
+│   ├── 05_hyperparameter_tuning.ipynb
+│   ├── 06_final_evaluation.ipynb
+│   └── Model_Evaluation.ipynb        # per-model individual diagnostics
+├── src/smartwatch_ml/
+│   ├── feature.py                    # single source of truth for raw input -> model input
+│   └── predict.py                    # single prediction entry point
+├── api/
+│   ├── main.py                       # FastAPI app, also serves the frontend
+│   ├── schemas.py
+│   └── static/index.html             # dynamic frontend, calls the API
+├── frontend/
+│   └── index_static.html             # standalone version, model weights baked in, no backend needed
+├── tests/
+│   └── test_predict.py               # 15 tests against real saved artifacts
+├── experiments/                      # every non-production model, kept for reference
+│   ├── baseline/
+│   └── tuned_models/
+├── artifacts/                        # the ONE production model and everything it needs to run
+│   ├── model.joblib
+│   ├── encoder.joblib / scaler.joblib / weight_encoder.joblib
+│   ├── feature_order.joblib, categorical/numerical/binary_columns.joblib
+│   ├── brand_freq_map.joblib, strap_color_freq_map.joblib (+ defaults)
+│   └── metadata.json                 # real training metrics, not cherry-picked
+├── results/
+│   ├── Hyperparameter_Tuning_Results.csv
+│   └── Final_Model_Comparison.csv
 ├── Requirements.txt
-│
-└── README.md
+└── .gitignore
 ```
 
----
+## How the pipeline works
 
-## Technologies Used
+Run the notebooks in order — each one depends on files the previous one wrote:
 
-- Python
-- Pandas
-- NumPy
-- Matplotlib
-- Scikit-learn
-- Joblib
-- Jupyter Notebook
+```
+01_data_cleaning.ipynb        cleans raw data, removes placeholder/corrupted rows, groups rare categories
+02_eda.ipynb                  exploratory analysis, no downstream dependency
+03_preprocessing.ipynb        train/test split, frequency + ordinal + one-hot encoding, saves all artifacts
+04_model_training.ipynb       baseline models, ranked by 5-fold CV
+05_hyperparameter_tuning.ipynb  regularized grid search per model
+06_final_evaluation.ipynb     selects the production model, saves artifacts/model.joblib + metadata.json
+```
 
----
+### A few specific decisions worth knowing, not just assuming
 
-## Data Preprocessing
+- **Rows with `Rating == 2.5` or broken price logic (`Current Price > Original Price`) are dropped entirely** in cleaning — these are known placeholder/corrupted values in the raw data, not real signal.
+- **`Brand` and `Strap Color` are frequency-encoded, fit on the training split only**, after the train/test split — fitting on the full dataset first was an earlier bug (data leakage) that's since been fixed.
+- **`Weight` is ordinal-encoded**, not one-hot — its five bins have a natural light-to-heavy order that one-hot encoding would throw away.
+- **Model selection uses cross-validated R² and a CV-based overfitting gap**, not a single train/test split — the ~70-row test set proved too noisy to trust on its own; test R² swung between 0.02 and 0.56 across iterations of the same pipeline with only minor code changes, while CV R² stayed far more stable.
+- **`Current Price` and `Original Price` both have a near-zero trained coefficient** (`0.0` and `0.0000075` respectively) and are not asked of the user at all — a fixed placeholder value is used internally for each. Only `Discount Percentage` is collected, since it's the one pricing input with a real, non-negligible effect (`-0.0032`).
+- **`Discount Percentage` assumes the user is looking at a real listing**, not inventing a hypothetical one — it's meant to be read directly off a product page (e.g. "43% off"), not guessed. This tool is designed for checking an existing/planned listing, not for a shopper imagining a product that doesn't exist yet.
+- **`Number of Ratings` is not collected from users** — it's meaningless for a not-yet-launched product, and defaults to 0 (log1p-transformed) at inference time.
 
-The following preprocessing techniques were performed:
+## Running it
 
-- Data Cleaning
-- Missing Value Handling
-- Feature Engineering
-- Train-Test Split
-- One-Hot Encoding
-- Feature Scaling
-- Model Serialization using Joblib
+### Predict via the static frontend (no backend required)
+Open `frontend/index_static.html` directly in a browser. The model's weights are compiled into the page itself. Only works because the production model is linear (Lasso) — if a future retrain picks a tree-based model, this file needs to be regenerated or retired in favor of the dynamic version below.
 
----
+### Predict via the API + dynamic frontend
+```bash
+pip install -r Requirements.txt
+uvicorn api.main:app --reload --port 8000
+```
+Open `http://localhost:8000/` — this serves the form and calls `/predict` on the same server.
 
-## Model Implemented
+### Run the tests
+```bash
+pytest tests/ -v
+```
 
-- Linear Regression
-- Decision Tree
-- Ridge Model
-- Lasso Model
+### Retrain and track experiments
+Run notebooks `01` through `06`. Tuning and final evaluation log to [DagsHub](https://dagshub.com) via MLflow — set your `repo_owner`/`repo_name` at the top of `05_hyperparameter_tuning.ipynb` and `06_final_evaluation.ipynb` first.
 
----
+## Deployment
 
-## Model Performance
+Deployed on [Render](https://render.com) as a single web service:
+- **Build command:** `pip install -r Requirements.txt`
+- **Start command:** `uvicorn api.main:app --host 0.0.0.0 --port $PORT`
 
-| Metric | Score |
-|---------|-------:|
-| Mean Absolute Error (MAE) | 0.2818 |
-| Mean Squared Error (MSE) | 0.1669 |
-| Root Mean Squared Error (RMSE) | 0.4085 |
-| R² Score | 0.3966 |
-| Adjusted R² Score | 0.2245 |
+Pushing to `main` triggers an automatic redeploy. Note: `artifacts/*.joblib` files are intentionally committed to git (force-added past `.gitignore`) since Render only deploys what's in the repository — these are the one thing that must ship, unlike everything in `experiments/`.
 
----
+## Known limitations
 
-## Key Findings
-
-- The model predicts smartwatch ratings with an average error of approximately **0.28 rating points**.
-- The Linear Regression model explains approximately **39.66%** of the variance in smartwatch ratings.
-- After accounting for model complexity, the Adjusted R² decreases to **22.45%**, indicating that several features contribute limited predictive information.
-- Residual analysis suggests that customer ratings cannot be fully explained using a simple linear relationship.
-- Linear Regression serves as a strong baseline model for comparison with more advanced regression algorithms.
-
----
-
-## Future Improvements
-
-The following regression algorithms will be implemented and compared:
-
-- Random Forest Regression
-- K-Nearest Neighbors (KNN) Regression
-- Gradient Boosting Regression
-- XGBoost Regression
-
-Future enhancements will also include:
-
-- Hyperparameter Tuning
-- Cross Validation
-- Model Comparison
-- Feature Importance Analysis
-- Model Deployment using Flask
-
----
-
-## Skills Demonstrated
-
-- Data Cleaning
-- Exploratory Data Analysis
-- Feature Engineering
-- One-Hot Encoding
-- Feature Scaling
-- Linear Regression
-- Regression Evaluation Metrics
-- Model Persistence using Joblib
-- End-to-End Machine Learning Pipeline
-
----
-
-## Author
-
-**Kushagra Neekhra**
-
-B.Tech Computer Science Engineering
-
-Machine Learning | Data Science | Artificial Intelligence
+- CV R² (~0.17) is modest — treat predictions as a rough estimate, not a precise forecast.
+- `Discount Percentage` isn't range-validated (negative or >100% values are accepted without error) — a known, documented gap, see `tests/test_predict.py::TestKnownGaps`.
+- The static frontend's baked-in weights go stale if the model is ever retrained — it isn't automatically kept in sync with `artifacts/model.joblib`.
