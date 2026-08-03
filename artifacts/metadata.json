@@ -1,6 +1,6 @@
 {
   "model_name": "Lasso",
-  "trained_at": "2026-08-02T16:35:02.045156",
+  "trained_at": "2026-08-03T08:58:27.242385",
   "needs_scaling": true,
   "n_train_rows": 277,
   "n_test_rows": 70,
